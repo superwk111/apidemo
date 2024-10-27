@@ -1,0 +1,21 @@
+Name: apidemo-api
+Host: 0.0.0.0
+Port: 8888
+
+mysqlConfig:
+  datasource:
+    driverClassName: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/test_schema
+    username: root
+    password: Wk19820111
+    maxActive: 100
+    maxIdle: 30
+    maxWait: 10000
+    validationQuery: SELECT 1
+    testOnBorrow: true
+    testWhileIdle: true
+    timeBetweenEvictionRunsMillis: 30000
+    minEvictableIdleTimeMillis: 60000
+    removeAbandoned: true
+    removeAbandonedTimeout: 60
+    logAbandoned: true
