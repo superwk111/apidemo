@@ -14,6 +14,7 @@ func NewMysql(mysqlConfig config.MysqlConfig) sqlx.SqlConn {
 	db, err := mysql.RawDB()
 	if err != nil {
 		logx.Error(err)
+		panic(err)
 	}
 
 	//Set connetion settings
