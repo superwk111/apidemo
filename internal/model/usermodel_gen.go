@@ -10,7 +10,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
+    "errors"
+	
 	"github.com/zeromicro/go-zero/core/stores/builder"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/core/stringx"
@@ -38,7 +39,7 @@ type (
 
 	User struct {
 		Id            int64     `db:"id"`
-		Name          string    `db:"name"`
+		Username          string    `db:"username"`
 		Password      string    `db:"password"`
 		RegisterTime  time.Time `db:"register_time"`
 		LastLoginTime time.Time `db:"last_login_time"`
@@ -74,16 +75,31 @@ func (m *defaultUserModel) FindOne(ctx context.Context, id int64) (*User, error)
 
 func (m *defaultUserModel) Insert(ctx context.Context, data *User) (sql.Result, error) {
 	query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?)", m.table, userRowsExpectAutoSet)
-	ret, err := m.conn.ExecCtx(ctx, query, data.Name, data.Password, data.RegisterTime, data.LastLoginTime)
+	ret, err := m.conn.ExecCtx(ctx, query, data.Username , data.Password, data.RegisterTime, data.LastLoginTime)
 	return ret, err
 }
 
 func (m *defaultUserModel) Update(ctx context.Context, data *User) error {
 	query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, userRowsWithPlaceHolder)
-	_, err := m.conn.ExecCtx(ctx, query, data.Name, data.Password, data.RegisterTime, data.LastLoginTime, data.Id)
+	_, err := m.conn.ExecCtx(ctx, query, data.Username , data.Password, data.RegisterTime, data.LastLoginTime, data.Id)
 	return err
 }
 
 func (m *defaultUserModel) tableName() string {
 	return m.table
 }
+
+func (u *User) ScanRegisterTime(src interface{}) error {
+    b, ok := src.([]byte)
+    if !ok {
+        return errors.New("invalid register time")
+    }
+    str := string(b)
+    t, err := time.Parse("2006-01-02 15:04:05", str)
+    if err != nil {
+        return err
+    }
+    u.RegisterTime = t
+    return nil
+}
+
