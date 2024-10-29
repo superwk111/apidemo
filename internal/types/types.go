@@ -4,7 +4,7 @@
 package types
 
 type LoginReq struct {
-	UserName string `json:"username"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 
@@ -13,7 +13,7 @@ type LoginResp struct {
 }
 
 type RegisterReq struct {
-	UserName string `json:"username"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 

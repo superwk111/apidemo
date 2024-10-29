@@ -25,7 +25,7 @@ type (
 )
 func (m *customUserModel) FindByUsername(ctx context.Context,username string) (*User, error) {
 	//TODO implement me
-	query := fmt.Sprintf("select %s from %s where `username` = ? limit 1", userRows, m.table)
+	query := fmt.Sprintf("select %s from %s where `name` = ? limit 1", userRows, m.table)
 	var resp User
 	err := m.conn.QueryRowCtx(ctx, &resp, query, username)
 	switch err {

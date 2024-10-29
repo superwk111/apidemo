@@ -1,14 +1,14 @@
 syntax = "v1"
 
 type RegisterReq {
-	UserName string `json:"username"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 
 type RegisterResp {}
 
 type LoginReq {
-	UserName string `json:"username"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 

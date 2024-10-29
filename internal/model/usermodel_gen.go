@@ -10,8 +10,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
-    "errors"
-	
+
 	"github.com/zeromicro/go-zero/core/stores/builder"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/core/stringx"
@@ -27,9 +26,10 @@ var (
 type (
 	userModel interface {
 		Insert(ctx context.Context, data *User) (sql.Result, error)
-		FindOne(ctx context.Context, id int64) (*User, error)
+		FindOne(ctx context.Context, id uint64) (*User, error)
+		FindOneByName(ctx context.Context, name string) (*User, error)
 		Update(ctx context.Context, data *User) error
-		Delete(ctx context.Context, id int64) error
+		Delete(ctx context.Context, id uint64) error
 	}
 
 	defaultUserModel struct {
@@ -38,8 +38,8 @@ type (
 	}
 
 	User struct {
-		Id            int64     `db:"id"`
-		Username          string    `db:"username"`
+		Id            uint64    `db:"id"`
+		Name          string    `db:"name"`
 		Password      string    `db:"password"`
 		RegisterTime  time.Time `db:"register_time"`
 		LastLoginTime time.Time `db:"last_login_time"`
@@ -53,13 +53,13 @@ func newUserModel(conn sqlx.SqlConn) *defaultUserModel {
 	}
 }
 
-func (m *defaultUserModel) Delete(ctx context.Context, id int64) error {
+func (m *defaultUserModel) Delete(ctx context.Context, id uint64) error {
 	query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 	_, err := m.conn.ExecCtx(ctx, query, id)
 	return err
 }
 
-func (m *defaultUserModel) FindOne(ctx context.Context, id int64) (*User, error) {
+func (m *defaultUserModel) FindOne(ctx context.Context, id uint64) (*User, error) {
 	query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", userRows, m.table)
 	var resp User
 	err := m.conn.QueryRowCtx(ctx, &resp, query, id)
@@ -73,33 +73,32 @@ func (m *defaultUserModel) FindOne(ctx context.Context, id int64) (*User, error)
 	}
 }
 
+func (m *defaultUserModel) FindOneByName(ctx context.Context, name string) (*User, error) {
+	var resp User
+	query := fmt.Sprintf("select %s from %s where `name` = ? limit 1", userRows, m.table)
+	err := m.conn.QueryRowCtx(ctx, &resp, query, name)
+	switch err {
+	case nil:
+		return &resp, nil
+	case sqlx.ErrNotFound:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
 func (m *defaultUserModel) Insert(ctx context.Context, data *User) (sql.Result, error) {
 	query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?)", m.table, userRowsExpectAutoSet)
-	ret, err := m.conn.ExecCtx(ctx, query, data.Username , data.Password, data.RegisterTime, data.LastLoginTime)
+	ret, err := m.conn.ExecCtx(ctx, query, data.Name, data.Password, data.RegisterTime, data.LastLoginTime)
 	return ret, err
 }
 
-func (m *defaultUserModel) Update(ctx context.Context, data *User) error {
+func (m *defaultUserModel) Update(ctx context.Context, newData *User) error {
 	query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, userRowsWithPlaceHolder)
-	_, err := m.conn.ExecCtx(ctx, query, data.Username , data.Password, data.RegisterTime, data.LastLoginTime, data.Id)
+	_, err := m.conn.ExecCtx(ctx, query, newData.Name, newData.Password, newData.RegisterTime, newData.LastLoginTime, newData.Id)
 	return err
 }
 
 func (m *defaultUserModel) tableName() string {
 	return m.table
 }
-
-func (u *User) ScanRegisterTime(src interface{}) error {
-    b, ok := src.([]byte)
-    if !ok {
-        return errors.New("invalid register time")
-    }
-    str := string(b)
-    t, err := time.Parse("2006-01-02 15:04:05", str)
-    if err != nil {
-        return err
-    }
-    u.RegisterTime = t
-    return nil
-}
-

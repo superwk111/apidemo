@@ -1,12 +1,9 @@
-create table `user`
-(
-    `id`              bigint                                                        NOT NULL AUTO_INCREMENT,
-    `name`            varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-    `password`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-    `register_time`   datetime                                                      NOT NULL,
-    `last_login_time` datetime                                                      NOT NULL,
-    PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-  ROW_FORMAT = Dynamic;
+CREATE TABLE `user` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(64) NOT NULL,
+    `password` CHAR(60) NOT NULL, -- Assuming bcrypt hash
+    `register_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `last_login_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `idx_name` (`name`)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;

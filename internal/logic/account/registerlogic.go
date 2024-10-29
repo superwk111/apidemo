@@ -2,6 +2,7 @@ package account
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
@@ -27,28 +28,30 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 }
 
 func (l *RegisterLogic) Register(req *types.RegisterReq) (resp *types.RegisterResp, err error) {
-	// todo: add your logic here and delete this line
-	//1. according the username to find the user , if exist return error
 	userModel := model.NewUserModel(l.svcCtx.Mysql)
-	user, err := userModel.FindByUsername(l.ctx, req.UserName)
-	if err != nil {
-		l.Logger.Error("inquire user failed", err)
-		return nil, err
+	
+	// Check existence with proper error handling
+	exists, err := userModel.FindByUsername(l.ctx, req.Name)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		l.Logger.Errorf("failed to query user: %v", err)
+		return nil, errors.New("internal server error")
 	}
-	if user != nil {
-		return nil, errors.New("user already exists")
-	}
-	//2. if not exist, create a new user, ingested from req
-	_, err = userModel.Insert(l.ctx, &model.User{
-		Username :          req.UserName,
-		Password:      req.Password,
-		RegisterTime:  time.Now(),
-		LastLoginTime: time.Now(),
-	})
-	if err != nil {
-		return nil, err
+	if exists != nil {
+		return nil, errors.New("username already taken")
 	}
 
-	//3. return resp
-	return &types.RegisterResp{}, err
+	// Create user with better error handling
+	now := time.Now()
+	_, err = userModel.Insert(l.ctx, &model.User{
+		Name:      req.Name,
+		Password:      req.Password,  // Note: You should hash this password
+		RegisterTime:  now,
+		LastLoginTime: now,
+	})
+	if err != nil {
+		l.Logger.Errorf("failed to create user: %v", err)
+		return nil, errors.New("failed to create user")
+	}
+
+	return &types.RegisterResp{}, nil
 }
