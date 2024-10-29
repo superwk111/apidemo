@@ -5,7 +5,9 @@ type RegisterReq {
 	Password string `json:"password"`
 }
 
-type RegisterResp {}
+type RegisterResp {
+	Status string `json:"status"`
+}
 
 type LoginReq {
 	Name     string `json:"name"`
@@ -27,4 +29,3 @@ service user-api {
 	@handler login
 	post /user/login (LoginReq) returns (LoginResp)
 }
-

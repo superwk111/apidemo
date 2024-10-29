@@ -2,7 +2,12 @@ module apidemo
 
 go 1.23.2
 
-require github.com/zeromicro/go-zero v1.7.3
+require (
+	github.com/go-sql-driver/mysql v1.8.1
+	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/zeromicro/go-zero v1.7.3
+	golang.org/x/crypto v0.28.0
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -12,8 +17,6 @@ require (
 	github.com/fatih/color v1.17.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-sql-driver/mysql v1.8.1 // indirect
-	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect

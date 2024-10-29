@@ -2,7 +2,9 @@ Name: apidemo-api
 Host: 0.0.0.0
 Port: 8888
 
-mysqlConfig:
-  DataSource: root:Wk19820111@tcp(localhost:3306)/test_schema
+JWTSecret: Gts64378
+
+Mysql:
+  DataSource: root:Wk19820111@tcp(localhost:3306)/test_schema?charset=utf8mb4&parseTime=true&loc=Local
   ConnectTimeout: 10
   MaxLifetime: 30

@@ -18,4 +18,5 @@ type RegisterReq struct {
 }
 
 type RegisterResp struct {
+	Status string `json:"status"`
 }

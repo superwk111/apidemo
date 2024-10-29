@@ -16,14 +16,14 @@ type (
 	UserModel interface {
 		userModel
 		withSession(session sqlx.Session) UserModel
-		FindByUsername(ctx context.Context,username string) (*User, error)
+		FindByName(ctx context.Context,username string) (*User, error)
 	}
 
 	customUserModel struct {
 		*defaultUserModel
 	}
 )
-func (m *customUserModel) FindByUsername(ctx context.Context,username string) (*User, error) {
+func (m *customUserModel) FindByName(ctx context.Context,username string) (*User, error) {
 	//TODO implement me
 	query := fmt.Sprintf("select %s from %s where `name` = ? limit 1", userRows, m.table)
 	var resp User

@@ -4,11 +4,14 @@ import "github.com/zeromicro/go-zero/rest"
 
 type Config struct {
 	rest.RestConf
-	MysqlConfig MysqlConfig
+	MySQL struct {
+		DataSource string
+	}
+	JWTSecret string
 }
-
 type MysqlConfig struct {
 	DataSource     string
-	ConnectTimeout int
 	MaxLifetime    int
+	ConnectTimeout int
 }
+

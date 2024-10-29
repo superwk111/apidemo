@@ -6,11 +6,14 @@ import (
 	"errors"
 	"time"
 
+	"apidemo/internal/common"
 	"apidemo/internal/model"
 	"apidemo/internal/svc"
 	"apidemo/internal/types"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/zeromicro/go-zero/core/logx"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type RegisterLogic struct {
@@ -30,28 +33,41 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 func (l *RegisterLogic) Register(req *types.RegisterReq) (resp *types.RegisterResp, err error) {
 	userModel := model.NewUserModel(l.svcCtx.Mysql)
 	
-	// Check existence with proper error handling
-	exists, err := userModel.FindByUsername(l.ctx, req.Name)
+	// Check if user exists
+	exists, err := userModel.FindByName(l.ctx, req.Name)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		l.Logger.Errorf("failed to query user: %v", err)
-		return nil, errors.New("internal server error")
+		return nil, common.DatabaseErrorf("failed to query user: %v", err)
 	}
 	if exists != nil {
-		return nil, errors.New("username already taken")
+		return nil, common.UserAlreadyExistsError()
 	}
 
-	// Create user with better error handling
+	// Hash the password before storing
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		l.Logger.Errorf("failed to hash password: %v", err)
+		return nil, common.DatabaseErrorf("failed to hash password: %v", err)
+	}
+
+	// Create user with hashed password
 	now := time.Now()
 	_, err = userModel.Insert(l.ctx, &model.User{
-		Name:      req.Name,
-		Password:      req.Password,  // Note: You should hash this password
+		Name:          req.Name,
+		Password:      string(hashedPassword),  // Store the hashed password
 		RegisterTime:  now,
 		LastLoginTime: now,
 	})
 	if err != nil {
 		l.Logger.Errorf("failed to create user: %v", err)
-		return nil, errors.New("failed to create user")
+		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
+			return nil, common.UserAlreadyExistsError()
+		}
+		return nil, common.DatabaseErrorf("failed to create user: %v", err)
 	}
 
-	return &types.RegisterResp{}, nil
+	// Return success response
+	return &types.RegisterResp{
+		Status: "SUCCESS",
+	}, nil
 }
